@@ -9,7 +9,7 @@ import (
 )
 
 func TestAppendAndReadSingleEntry(t *testing.T) {
-	filePath := fmt.Sprintf("%s%s", os.TempDir(), "TestAppendAndReadSingleEntry")
+	filePath := fmt.Sprintf("%s/%s", os.TempDir(), "TestAppendAndReadSingleEntry")
 	defer os.Remove(filePath)
 	store, err := NewStore(filePath)
 
@@ -25,7 +25,7 @@ func TestAppendAndReadSingleEntry(t *testing.T) {
 }
 
 func TestAppendAndReadMultipleEntry(t *testing.T) {
-	filePath := fmt.Sprintf("%s%s", os.TempDir(), "TestAppendAndReadMultipleEntry")
+	filePath := fmt.Sprintf("%s/%s", os.TempDir(), "TestAppendAndReadMultipleEntry")
 	defer os.Remove(filePath)
 	store, err := NewStore(filePath)
 	defer store.Close()
@@ -43,7 +43,7 @@ func TestAppendAndReadMultipleEntry(t *testing.T) {
 }
 
 func TestReadFromANewStoreAfterClose(t *testing.T) {
-	filePath := fmt.Sprintf("%s%s", os.TempDir(), "TestReadFromANewStoreAfterClose")
+	filePath := fmt.Sprintf("%s/%s", os.TempDir(), "TestReadFromANewStoreAfterClose")
 	defer os.Remove(filePath)
 	store, err := NewStore(filePath)
 	defer store.Close()
