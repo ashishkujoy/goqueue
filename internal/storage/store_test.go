@@ -56,6 +56,7 @@ func TestReadFromANewStoreAfterClose(t *testing.T) {
 	assert.NoError(t, err)
 
 	store, err = NewStore(filePath)
+	assert.NoError(t, err)
 
 	data1, err := store.Read(offset1)
 	assert.NoError(t, err)

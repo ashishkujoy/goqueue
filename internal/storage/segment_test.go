@@ -63,3 +63,29 @@ func TestReadNonExistingMessage(t *testing.T) {
 	_, err = segment.Read(13)
 	assert.Error(t, err)
 }
+
+func TestReadFromReloadedSegment(t *testing.T) {
+	config := &Config{segmentsRoot: os.TempDir()}
+	defer os.Remove(fmt.Sprintf("%s/segment_13", os.TempDir()))
+
+	index := NewIndex()
+
+	segment, err := NewSegment(12, config, index)
+	assert.NoError(t, err)
+
+	segment.Append([]byte("Hello world"))
+	segment.Append([]byte("Hello earth"))
+	segment.Append([]byte("Hello India"))
+	segment.Close()
+
+	restoredSegment, err := NewSegment(12, config, index)
+	assert.NoError(t, err)
+
+	data1, _ := restoredSegment.Read(0)
+	data2, _ := restoredSegment.Read(1)
+	data3, _ := restoredSegment.Read(2)
+
+	assert.Equal(t, []byte("Hello world"), data1)
+	assert.Equal(t, []byte("Hello earth"), data2)
+	assert.Equal(t, []byte("Hello India"), data3)
+}
