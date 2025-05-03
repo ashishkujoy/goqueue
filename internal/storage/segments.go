@@ -77,3 +77,15 @@ func (s *Segments) rollOverSegment() error {
 	s.active = newActiveSegment
 	return nil
 }
+
+func (s *Segments) Close() error {
+	if err := s.active.Close(); err != nil {
+		return err
+	}
+	for _, segment := range s.closedSegments {
+		if err := segment.Close(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
