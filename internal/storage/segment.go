@@ -5,35 +5,34 @@ import (
 )
 
 type Segment struct {
+	id    int
 	store *Store
-	index *Index
 }
 
-func NewSegment(startingIndex int, config *Config, index *Index) (*Segment, error) {
-	filePath := fmt.Sprintf("%s/segment-%d", config.segmentsRoot, startingIndex)
+func (s *Segment) CloseWriter() error {
+	return s.store.CloseWriter()
+}
+
+func NewSegment(id int, config *Config) (*Segment, error) {
+	filePath := fmt.Sprintf("%s/segment-%d", config.segmentsRoot, id)
 	store, err := NewStore(filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Segment{store: store, index: index}, nil
+	return &Segment{store: store, id: id}, nil
 }
 
 func (s *Segment) Append(data []byte) (int, error) {
-	offset, err := s.store.Append(data)
-	if err != nil {
-		return 0, err
-	}
-	elementIndex := s.index.Append(offset)
-	return elementIndex, nil
+	return s.store.Append(data)
 }
 
-func (s *Segment) Read(id int) ([]byte, error) {
-	offset, ok := s.index.GetOffset(id)
-	if !ok {
-		return nil, fmt.Errorf("unknown message id: %d", id)
-	}
+func (s *Segment) Read(offset int) ([]byte, error) {
 	return s.store.Read(offset)
+}
+
+func (s *Segment) isFull(maxSizeInBytes int) bool {
+	return float64(s.store.Size()) >= float64(maxSizeInBytes)*0.9
 }
 
 func (s *Segment) Close() error {

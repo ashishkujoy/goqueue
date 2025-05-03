@@ -11,6 +11,10 @@ type Store struct {
 	offset int
 }
 
+func (s *Store) CloseWriter() error {
+	return s.writer.Close()
+}
+
 func NewStore(filePath string) (*Store, error) {
 	writer, err := os.OpenFile(filePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
@@ -86,4 +90,8 @@ func (s *Store) Close() error {
 	}
 
 	return s.writer.Close()
+}
+
+func (s *Store) Size() int {
+	return s.offset
 }

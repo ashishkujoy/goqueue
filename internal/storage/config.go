@@ -1,5 +1,6 @@
 package storage
 
 type Config struct {
-	segmentsRoot string
+	segmentsRoot          string
+	maxSegmentSizeInBytes int
 }
