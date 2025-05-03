@@ -1,6 +1,9 @@
 package storage
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 type Segments struct {
 	config         *Config
@@ -8,6 +11,7 @@ type Segments struct {
 	id             int
 	index          *Index
 	closedSegments []*Segment
+	mu             *sync.Mutex
 }
 
 func NewSegments(config *Config, index *Index) (*Segments, error) {
@@ -67,6 +71,9 @@ func (s *Segments) findSegment(segmentId int) (*Segment, error) {
 }
 
 func (s *Segments) rollOverSegment() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.active.CloseWriter()
 	s.closedSegments = append(s.closedSegments, s.active)
 	s.id++
