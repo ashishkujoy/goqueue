@@ -30,6 +30,7 @@ func NewSegments(config *Config, index *Index) (*Segments, error) {
 		active:         segment,
 		index:          index,
 		closedSegments: make([]*Segment, 0),
+		mu:             &sync.Mutex{},
 	}, nil
 }
 
