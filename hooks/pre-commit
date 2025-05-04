@@ -1,0 +1,18 @@
+#! /bin/bash
+
+set -e
+find . -name "*.go" -exec go fmt {} \;
+# Check for untracked files
+if [[ -n $(git ls-files --others --exclude-standard) ]]; then
+  echo "❌ Commit blocked: There are untracked files."
+  echo "Run 'git add <file>' to track them or .gitignore if intentional."
+  exit 1
+fi
+
+# Check for unstaged changes in tracked files
+if [[ -n $(git diff --name-only) ]]; then
+  echo "❌ Commit blocked: There are unstaged changes in tracked files."
+  echo "Run 'git add <file>' to stage them."
+  exit 1
+fi
+go test -v ./...
