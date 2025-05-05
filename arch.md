@@ -8,11 +8,15 @@ consumers) will interact with the server to enqueue and dequeue messages.
 
 ```mermaid
 graph LR
-    ClientProducer --> QueueServer
-    ClientConsumer --> QueueServer
-    QueueServer --> SegmentedLog
-    QueueServer --> InMemoryIndex
-    QueueServer --> PersistentStorage[Persistent Consumer Offsets]
+    ClientProducer --> QueueService
+    ClientConsumer --> QueueService
+    Segments --> Segment1 --> Store1
+    Segments --> Segment2 --> Store2
+    Segments --> Segment3 --> Store3
+    Queue --> Segments
+    Queue --> MessageIndex
+    QueueService --> Queue
+    QueueService --> ConsumerIndex
 ```
 
 ## II Components and Interactions
