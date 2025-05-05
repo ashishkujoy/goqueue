@@ -1,7 +1,7 @@
 package consumer
 
 import (
-	"ashishkujoy/queue/internal/storage"
+	"ashishkujoy/queue/internal/config"
 	"os"
 	"testing"
 
@@ -22,7 +22,7 @@ func TestReadAndWriteIndex(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(metadataDir)
 
-	config := storage.NewConfigWithMetadataPath("/tmp", metadataDir, 1234)
+	config := config.NewConfigWithMetadataPath("/tmp", metadataDir, 1234)
 	index, err := NewConsumerIndex(config)
 	assert.NoError(t, err)
 
@@ -41,7 +41,7 @@ func TestReadFromARestoredIndex(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(metadataDir)
 
-	config := storage.NewConfigWithMetadataPath("/tmp", metadataDir, 1234)
+	config := config.NewConfigWithMetadataPath("/tmp", metadataDir, 1234)
 	index, err := NewConsumerIndex(config)
 	assert.NoError(t, err)
 
@@ -65,7 +65,7 @@ func TestRestoreIndexUsesTheLatestSnapshot(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(metadataDir)
 
-	config := storage.NewConfigWithMetadataPath("/tmp", metadataDir, 1234)
+	config := config.NewConfigWithMetadataPath("/tmp", metadataDir, 1234)
 
 	index1, err := NewConsumerIndex(config)
 	assert.NoError(t, err)

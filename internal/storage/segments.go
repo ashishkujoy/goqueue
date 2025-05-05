@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"ashishkujoy/queue/internal/config"
 	"fmt"
 	"sync"
 )
@@ -10,7 +11,7 @@ import (
 // reading data from segments, and rolling over to a new segment
 // when the current segment is full.
 type Segments struct {
-	config         *Config
+	config         *config.Config
 	active         *Segment
 	id             int
 	index          *Index
@@ -19,7 +20,7 @@ type Segments struct {
 }
 
 // NewSegments creates a new Segments instance with the given configuration and index.
-func NewSegments(config *Config, index *Index) (*Segments, error) {
+func NewSegments(config *config.Config, index *Index) (*Segments, error) {
 	segment, err := NewSegment(0, config)
 	if err != nil {
 		return nil, err
@@ -37,7 +38,7 @@ func NewSegments(config *Config, index *Index) (*Segments, error) {
 // Append appends data to the active segment.
 // If the active segment is full, it rolls over to a new segment.
 func (s *Segments) Append(data []byte) (int, error) {
-	if s.active.isFull(s.config.maxSegmentSizeInBytes) {
+	if s.active.isFull(s.config.MaxSegmentSizeInBytes()) {
 		if err := s.rollOverSegment(); err != nil {
 			return 0, err
 		}

@@ -1,7 +1,7 @@
 package queueinternal
 
 import (
-	"ashishkujoy/queue/internal/storage"
+	"ashishkujoy/queue/internal/config"
 	"os"
 	"testing"
 
@@ -20,7 +20,7 @@ func removeTempDir(suffix string) {
 }
 
 func TestEnqueueSingleElement(t *testing.T) {
-	config := storage.NewConfig(createTempDir("TestEnqueueSingleElement"), 1000)
+	config := config.NewConfig(createTempDir("TestEnqueueSingleElement"), 1000)
 	defer removeTempDir("TestEnqueueSingleElement")
 	queue, err := NewQueue(config)
 	assert.NoError(t, err)

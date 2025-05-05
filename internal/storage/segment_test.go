@@ -5,11 +5,13 @@ import (
 	"os"
 	"testing"
 
+	"ashishkujoy/queue/internal/config"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAppendToTheSegment(t *testing.T) {
-	config := &Config{segmentsRoot: os.TempDir()}
+	config := config.NewConfig(os.TempDir(), 1024)
 	defer os.Remove(fmt.Sprintf("%s/segment_10", os.TempDir()))
 
 	segment, err := NewSegment(10, config)
@@ -21,7 +23,7 @@ func TestAppendToTheSegment(t *testing.T) {
 }
 
 func TestReadFromTheSegment(t *testing.T) {
-	config := &Config{segmentsRoot: os.TempDir()}
+	config := config.NewConfig(os.TempDir(), 1024)
 	defer os.Remove(fmt.Sprintf("%s/segment_10", os.TempDir()))
 
 	segment, err := NewSegment(10, config)
@@ -44,7 +46,7 @@ func TestReadFromTheSegment(t *testing.T) {
 }
 
 func TestReadNonExistingMessage(t *testing.T) {
-	config := &Config{segmentsRoot: os.TempDir()}
+	config := config.NewConfig(os.TempDir(), 1024)
 	defer os.Remove(fmt.Sprintf("%s/segment_12", os.TempDir()))
 
 	segment, err := NewSegment(12, config)
@@ -56,7 +58,7 @@ func TestReadNonExistingMessage(t *testing.T) {
 }
 
 func TestReadFromReloadedSegment(t *testing.T) {
-	config := &Config{segmentsRoot: os.TempDir()}
+	config := config.NewConfig(os.TempDir(), 1024)
 	defer os.Remove(fmt.Sprintf("%s/segment_13", os.TempDir()))
 
 	segment, err := NewSegment(12, config)

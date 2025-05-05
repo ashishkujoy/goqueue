@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"ashishkujoy/queue/internal/config"
 	"os"
 	"testing"
 
@@ -19,7 +20,7 @@ func removeTempDir(suffix string) {
 }
 
 func TestAppend(t *testing.T) {
-	config := &Config{maxSegmentSizeInBytes: 1000, segmentsRoot: createTempDir("SegmentTestAppend")}
+	config := config.NewConfig(createTempDir("SegmentTestAppend"), 1000)
 	defer removeTempDir("SegmentTestAppend")
 	index := NewIndex()
 	segments, err := NewSegments(config, index)
@@ -35,7 +36,7 @@ func TestAppend(t *testing.T) {
 }
 
 func TestAppendMultipleEntry(t *testing.T) {
-	config := &Config{maxSegmentSizeInBytes: 1000, segmentsRoot: createTempDir("SegmentTestAppendMultipleEntry")}
+	config := config.NewConfig(createTempDir("SegmentTestAppendMultipleEntry"), 1000)
 	defer removeTempDir("SegmentTestAppendMultipleEntry")
 	index := NewIndex()
 	segments, err := NewSegments(config, index)
@@ -57,8 +58,8 @@ func TestAppendMultipleEntry(t *testing.T) {
 }
 
 func TestSegmentRollOver(t *testing.T) {
-	config := &Config{maxSegmentSizeInBytes: 10, segmentsRoot: createTempDir("TestSegmentRollOver")}
-	defer removeTempDir("TestSegmentRollOver")
+	config := config.NewConfig(createTempDir("TestSegmentRollOver1"), 20)
+	defer removeTempDir("TestSegmentRollOver1")
 	index := NewIndex()
 	segments, err := NewSegments(config, index)
 	assert.NoError(t, err)
@@ -72,8 +73,8 @@ func TestSegmentRollOver(t *testing.T) {
 }
 
 func TestReadFromARolledOverSegment(t *testing.T) {
-	config := &Config{maxSegmentSizeInBytes: 10, segmentsRoot: createTempDir("TestSegmentRollOver")}
-	defer removeTempDir("TestSegmentRollOver")
+	config := config.NewConfig(createTempDir("TestReadFromARolledOverSegment"), 10)
+	defer removeTempDir("TestReadFromARolledOverSegment")
 	index := NewIndex()
 	segments, err := NewSegments(config, index)
 	assert.NoError(t, err)

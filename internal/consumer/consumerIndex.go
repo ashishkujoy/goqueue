@@ -1,7 +1,7 @@
 package consumer
 
 import (
-	"ashishkujoy/queue/internal/storage"
+	"ashishkujoy/queue/internal/config"
 	"encoding/binary"
 	"fmt"
 	"os"
@@ -19,12 +19,12 @@ import (
 type ConsumerIndex struct {
 	writer  *os.File
 	mu      *sync.RWMutex
-	config  *storage.Config
+	config  *config.Config
 	indexes map[int]int
 }
 
 // NewConsumerIndex initializes a new ConsumerIndex instance.
-func NewConsumerIndex(config *storage.Config) (*ConsumerIndex, error) {
+func NewConsumerIndex(config *config.Config) (*ConsumerIndex, error) {
 	writer, err := createIndexFile(config)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func extractTimestamp(filename string) int64 {
 	return num
 }
 
-func getLastIndexFile(config *storage.Config) (*os.File, error) {
+func getLastIndexFile(config *config.Config) (*os.File, error) {
 	enteries, err := os.ReadDir(config.MetadataPath)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func restoreIndexesFromFile(file *os.File) (map[int]int, error) {
 	return indexes, nil
 }
 
-func RestoreConsumerIndex(config *storage.Config) (*ConsumerIndex, error) {
+func RestoreConsumerIndex(config *config.Config) (*ConsumerIndex, error) {
 	lastIndexFile, err := getLastIndexFile(config)
 	if err != nil {
 		lastIndexFilePath := fmt.Sprintf("%s/consumer_index_%d", config.MetadataPath, time.Now().Unix())
@@ -113,7 +113,7 @@ func RestoreConsumerIndex(config *storage.Config) (*ConsumerIndex, error) {
 }
 
 // createIndexFile creates a new index file for the consumer.
-func createIndexFile(config *storage.Config) (*os.File, error) {
+func createIndexFile(config *config.Config) (*os.File, error) {
 	filepath := fmt.Sprintf("%s/consumer_index_%d", config.MetadataPath, time.Now().Unix())
 	writer, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {

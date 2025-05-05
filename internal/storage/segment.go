@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"ashishkujoy/queue/internal/config"
 	"fmt"
 	"sync"
 )
@@ -18,8 +19,8 @@ type Segment struct {
 }
 
 // NewSegment creates a new segment with the given ID and configuration.
-func NewSegment(id int, config *Config) (*Segment, error) {
-	filePath := fmt.Sprintf("%s/segment-%d", config.segmentsRoot, id)
+func NewSegment(id int, config *config.Config) (*Segment, error) {
+	filePath := fmt.Sprintf("%s/segment-%d", config.SegmentsRoot(), id)
 	store, err := NewStore(filePath)
 	if err != nil {
 		return nil, err

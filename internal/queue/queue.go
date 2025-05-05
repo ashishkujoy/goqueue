@@ -1,12 +1,15 @@
 package queueinternal
 
-import "ashishkujoy/queue/internal/storage"
+import (
+	"ashishkujoy/queue/internal/config"
+	"ashishkujoy/queue/internal/storage"
+)
 
 type Queue struct {
 	segments *storage.Segments
 }
 
-func NewQueue(config *storage.Config) (*Queue, error) {
+func NewQueue(config *config.Config) (*Queue, error) {
 	segments, err := storage.NewSegments(config, storage.NewIndex())
 	if err != nil {
 		return nil, err
