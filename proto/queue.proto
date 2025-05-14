@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option go_package = "ashishkujoy/queue/net;netinternal";
+
+message EnqueuRequest {
+    bytes message = 1;
+}
+
+message EnqueuRequestResponse {
+    bool success = 1;
+}
+
+message ObserveQueueRequest {
+    uint64 consumerId = 1;
+}
+
+message QueueMessage {
+    bytes message = 1;
+}
+
+service QueueService {
+    rpc Enqueue(EnqueuRequest) returns (EnqueuRequestResponse);
+    rpc ObserveQueue(ObserveQueueRequest) returns (stream QueueMessage);
+}
