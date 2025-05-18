@@ -19,11 +19,11 @@ func main() {
 	serverStop := make(chan interface{})
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
-	go func() {
-		println("About to call run")
-		server.Run(serverStop)
-		println("Calling run done")
-	}()
+
+	err = server.Run(serverStop)
+	if err != nil {
+		return
+	}
 	<-stop
 	serverStop <- "stop"
 }
