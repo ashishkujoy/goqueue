@@ -11,7 +11,7 @@ import (
 
 func main() {
 	conf := config.NewConfigWithMetadataPath("data/segments", "data/metadata", 1024*1024)
-	server, err := netinternal.NewQueueServer(conf, ":8081")
+	server, err := netinternal.NewQueueServer(conf, ":50051")
 	if err != nil {
 		log.Fatalf("Failed to create server: %v", err)
 		return

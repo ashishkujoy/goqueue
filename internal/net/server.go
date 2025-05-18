@@ -37,10 +37,12 @@ func NewQueueServer(config *config.Config, port string) (*QueueServer, error) {
 	return server, nil
 }
 
-func (qs *QueueServer) Enqueue(ctx context.Context, req *netinternal.EnqueuRequest) (*netinternal.EnqueuRequestResponse, error) {
-	qs.queueService.Enqueue(req.Message)
+func (qs *QueueServer) Enqueue(ctx context.Context, req *netinternal.EnqueueRequest) (*netinternal.EnqueueRequestResponse, error) {
+	if err := qs.queueService.Enqueue(req.Message); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to enqueue")
+	}
 	qs.broadcastMessage()
-	return nil, status.Errorf(codes.Unimplemented, "method Enqueue not implemented")
+	return &netinternal.EnqueueRequestResponse{Success: true}, nil
 }
 
 func (qs *QueueServer) broadcastMessage() {
@@ -57,6 +59,7 @@ func (qs *QueueServer) serveMessages(req *netinternal.ObserveQueueRequest, strea
 		if err != nil {
 			break
 		}
+		fmt.Printf("Message dequeued: %v\n", msg)
 		err = stream.Send(&netinternal.QueueMessage{Message: msg})
 		if err != nil {
 			return err

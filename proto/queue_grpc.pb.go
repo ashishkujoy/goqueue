@@ -27,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type QueueServiceClient interface {
-	Enqueue(ctx context.Context, in *EnqueuRequest, opts ...grpc.CallOption) (*EnqueuRequestResponse, error)
+	Enqueue(ctx context.Context, in *EnqueueRequest, opts ...grpc.CallOption) (*EnqueueRequestResponse, error)
 	ObserveQueue(ctx context.Context, in *ObserveQueueRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QueueMessage], error)
 }
 
@@ -39,9 +39,9 @@ func NewQueueServiceClient(cc grpc.ClientConnInterface) QueueServiceClient {
 	return &queueServiceClient{cc}
 }
 
-func (c *queueServiceClient) Enqueue(ctx context.Context, in *EnqueuRequest, opts ...grpc.CallOption) (*EnqueuRequestResponse, error) {
+func (c *queueServiceClient) Enqueue(ctx context.Context, in *EnqueueRequest, opts ...grpc.CallOption) (*EnqueueRequestResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EnqueuRequestResponse)
+	out := new(EnqueueRequestResponse)
 	err := c.cc.Invoke(ctx, QueueService_Enqueue_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ type QueueService_ObserveQueueClient = grpc.ServerStreamingClient[QueueMessage]
 // All implementations must embed UnimplementedQueueServiceServer
 // for forward compatibility.
 type QueueServiceServer interface {
-	Enqueue(context.Context, *EnqueuRequest) (*EnqueuRequestResponse, error)
+	Enqueue(context.Context, *EnqueueRequest) (*EnqueueRequestResponse, error)
 	ObserveQueue(*ObserveQueueRequest, grpc.ServerStreamingServer[QueueMessage]) error
 	mustEmbedUnimplementedQueueServiceServer()
 }
@@ -84,7 +84,7 @@ type QueueServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedQueueServiceServer struct{}
 
-func (UnimplementedQueueServiceServer) Enqueue(context.Context, *EnqueuRequest) (*EnqueuRequestResponse, error) {
+func (UnimplementedQueueServiceServer) Enqueue(context.Context, *EnqueueRequest) (*EnqueueRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Enqueue not implemented")
 }
 func (UnimplementedQueueServiceServer) ObserveQueue(*ObserveQueueRequest, grpc.ServerStreamingServer[QueueMessage]) error {
@@ -112,7 +112,7 @@ func RegisterQueueServiceServer(s grpc.ServiceRegistrar, srv QueueServiceServer)
 }
 
 func _QueueService_Enqueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EnqueuRequest)
+	in := new(EnqueueRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func _QueueService_Enqueue_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: QueueService_Enqueue_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueueServiceServer).Enqueue(ctx, req.(*EnqueuRequest))
+		return srv.(QueueServiceServer).Enqueue(ctx, req.(*EnqueueRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

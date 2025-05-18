@@ -1,3 +1,6 @@
 .vscode
 .idea
 main
+data
+cli-client
+.vscode

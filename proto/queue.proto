@@ -2,11 +2,11 @@ syntax = "proto3";
 
 option go_package = "ashishkujoy/queue/net;netinternal";
 
-message EnqueuRequest {
+message EnqueueRequest {
     bytes message = 1;
 }
 
-message EnqueuRequestResponse {
+message EnqueueRequestResponse {
     bool success = 1;
 }
 
@@ -19,6 +19,6 @@ message QueueMessage {
 }
 
 service QueueService {
-    rpc Enqueue(EnqueuRequest) returns (EnqueuRequestResponse);
+    rpc Enqueue(EnqueueRequest) returns (EnqueueRequestResponse);
     rpc ObserveQueue(ObserveQueueRequest) returns (stream QueueMessage);
 }
