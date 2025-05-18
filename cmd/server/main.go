@@ -4,9 +4,6 @@ import (
 	"ashishkujoy/queue/internal/config"
 	netinternal "ashishkujoy/queue/internal/net"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
@@ -16,14 +13,6 @@ func main() {
 		log.Fatalf("Failed to create server: %v", err)
 		return
 	}
-	serverStop := make(chan interface{})
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
-	err = server.Run(serverStop)
-	if err != nil {
-		return
-	}
-	<-stop
-	serverStop <- "stop"
+	err = server.Run()
 }
