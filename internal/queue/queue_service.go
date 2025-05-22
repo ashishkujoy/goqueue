@@ -40,3 +40,8 @@ func (qs *QueueService) Dequeue(consumerId int) ([]byte, error) {
 	qs.consumerIndex.WriteIndex(consumerId, index+1)
 	return data, nil
 }
+
+func (qs *QueueService) RevertDequeue(consumerId int) {
+	index := qs.consumerIndex.ReadIndex(consumerId)
+	qs.consumerIndex.WriteIndex(consumerId, index-1)
+}

@@ -5,14 +5,14 @@ import (
 	"ashishkujoy/queue/internal/config"
 	queueinternal "ashishkujoy/queue/internal/queue"
 	netinternal "ashishkujoy/queue/proto"
-	context "context"
+	"context"
 	"fmt"
 	"net"
 	"sync"
 
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type MessageOutputStream = grpc.ServerStreamingServer[netinternal.QueueMessage]
@@ -67,6 +67,7 @@ func (qs *QueueServer) broadcastMessage() {
 			if err := qs.serveMessages(consumer); err != nil {
 				mu.Lock()
 				defer mu.Unlock()
+				qs.queueService.RevertDequeue(int(consumer.id))
 				consumer.closeChannel <- "closed"
 				closedChannels = append(closedChannels, consumer.id)
 			}
