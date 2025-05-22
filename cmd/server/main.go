@@ -16,4 +16,7 @@ func main() {
 	}
 
 	err = server.Run()
+	if err != nil {
+		log.Fatalf("Server run failed: %v", err)
+	}
 }

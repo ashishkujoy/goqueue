@@ -17,9 +17,8 @@ import (
 
 type MessageOutputStream = grpc.ServerStreamingServer[netinternal.QueueMessage]
 type OnlineConsumer struct {
-	id           uint64
-	stream       MessageOutputStream
-	closeChannel chan<- interface{}
+	id     uint64
+	stream MessageOutputStream
 }
 type QueueServer struct {
 	netinternal.UnimplementedQueueServiceServer
@@ -56,6 +55,12 @@ func (qs *QueueServer) Enqueue(_ context.Context, req *netinternal.EnqueueReques
 	return &netinternal.EnqueueRequestResponse{Success: true}, nil
 }
 
+func removeClosedConsumers(closedChannels []uint64, consumers []*OnlineConsumer) []*OnlineConsumer {
+	return internal.Filter(consumers, func(consumer *OnlineConsumer) bool {
+		return !internal.Contains(closedChannels, consumer.id)
+	})
+}
+
 func (qs *QueueServer) broadcastMessage() {
 	var closedChannels []uint64
 	mu := sync.Mutex{}
@@ -68,23 +73,21 @@ func (qs *QueueServer) broadcastMessage() {
 				mu.Lock()
 				defer mu.Unlock()
 				qs.queueService.RevertDequeue(int(consumer.id))
-				consumer.closeChannel <- "closed"
 				closedChannels = append(closedChannels, consumer.id)
 			}
 		}(consumer)
 	}
 	wg.Wait()
-	qs.onlineConsumer = internal.Filter(qs.onlineConsumer, func(consumer *OnlineConsumer) bool {
-		return !internal.Contains(closedChannels, consumer.id)
-	})
+	qs.onlineConsumer = removeClosedConsumers(closedChannels, qs.onlineConsumer)
 }
 
 func (qs *QueueServer) ObserveQueue(req *netinternal.ObserveQueueRequest, stream grpc.ServerStreamingServer[netinternal.QueueMessage]) error {
-	closeChannel := make(chan interface{})
-	consumer := &OnlineConsumer{id: req.ConsumerId, stream: stream, closeChannel: closeChannel}
+	consumer := &OnlineConsumer{id: req.ConsumerId, stream: stream}
 	_ = qs.serveMessages(consumer)
 	qs.onlineConsumer = append(qs.onlineConsumer, consumer)
-	<-closeChannel
+	<-stream.Context().Done()
+	closedConsumers := []uint64{req.ConsumerId}
+	qs.onlineConsumer = removeClosedConsumers(closedConsumers, qs.onlineConsumer)
 	return nil
 }
 

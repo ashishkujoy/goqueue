@@ -32,13 +32,13 @@ func NewCLIOptions() *CLIOptions {
 	}
 }
 
-func createQueueClient() netinternal.QueueServiceClient {
+func createQueueClient() (netinternal.QueueServiceClient, *grpc.ClientConn) {
 	conn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("failed to connect: %v", err)
 	}
 	client := netinternal.NewQueueServiceClient(conn)
-	return client
+	return client, conn
 }
 
 func enqueueMsg(cliOptions *CLIOptions, client netinternal.QueueServiceClient) {
@@ -72,7 +72,8 @@ func observeQueueMsg(cliOptions *CLIOptions, client netinternal.QueueServiceClie
 
 func main() {
 	cliOptions := NewCLIOptions()
-	client := createQueueClient()
+	client, conn := createQueueClient()
+	defer conn.Close()
 
 	if cliOptions.publish {
 		enqueueMsg(cliOptions, client)
