@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"ashishkujoy/queue/internal/config"
 
@@ -11,10 +12,10 @@ import (
 )
 
 func TestAppendToTheSegment(t *testing.T) {
-	config := config.NewConfig(os.TempDir(), 1024)
+	cfg := config.NewConfig(os.TempDir(), "/tmp", 1024, time.Second*5)
 	defer os.Remove(fmt.Sprintf("%s/segment_10", os.TempDir()))
 
-	segment, err := NewSegment(10, config)
+	segment, err := NewSegment(10, cfg)
 	assert.NoError(t, err)
 	defer segment.Close()
 
@@ -23,10 +24,10 @@ func TestAppendToTheSegment(t *testing.T) {
 }
 
 func TestReadFromTheSegment(t *testing.T) {
-	config := config.NewConfig(os.TempDir(), 1024)
+	cfg := config.NewConfig(os.TempDir(), "/tmp", 1024, time.Second)
 	defer os.Remove(fmt.Sprintf("%s/segment_10", os.TempDir()))
 
-	segment, err := NewSegment(10, config)
+	segment, err := NewSegment(10, cfg)
 	assert.NoError(t, err)
 	defer segment.Close()
 
@@ -46,10 +47,10 @@ func TestReadFromTheSegment(t *testing.T) {
 }
 
 func TestReadNonExistingMessage(t *testing.T) {
-	config := config.NewConfig(os.TempDir(), 1024)
+	cfg := config.NewConfig(os.TempDir(), "/tmp", 1024, time.Second)
 	defer os.Remove(fmt.Sprintf("%s/segment_12", os.TempDir()))
 
-	segment, err := NewSegment(12, config)
+	segment, err := NewSegment(12, cfg)
 	assert.NoError(t, err)
 	defer segment.Close()
 
@@ -58,10 +59,10 @@ func TestReadNonExistingMessage(t *testing.T) {
 }
 
 func TestReadFromReloadedSegment(t *testing.T) {
-	config := config.NewConfig(os.TempDir(), 1024)
+	cfg := config.NewConfig(os.TempDir(), "/tmp", 1024, time.Second)
 	defer os.Remove(fmt.Sprintf("%s/segment_13", os.TempDir()))
 
-	segment, err := NewSegment(12, config)
+	segment, err := NewSegment(12, cfg)
 	assert.NoError(t, err)
 
 	offset1, _ := segment.Append([]byte("Hello world"))
@@ -69,7 +70,7 @@ func TestReadFromReloadedSegment(t *testing.T) {
 	offset3, _ := segment.Append([]byte("Hello India"))
 	segment.Close()
 
-	restoredSegment, err := NewSegment(12, config)
+	restoredSegment, err := NewSegment(12, cfg)
 	assert.NoError(t, err)
 
 	data1, _ := restoredSegment.Read(offset1)

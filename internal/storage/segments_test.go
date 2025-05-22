@@ -4,6 +4,7 @@ import (
 	"ashishkujoy/queue/internal/config"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -20,10 +21,10 @@ func removeTempDir(suffix string) {
 }
 
 func TestAppend(t *testing.T) {
-	config := config.NewConfig(createTempDir("SegmentTestAppend"), 1000)
+	cfg := config.NewConfig(createTempDir("SegmentTestAppend"), "tmp", 1000, time.Second)
 	defer removeTempDir("SegmentTestAppend")
 	index := NewIndex()
-	segments, err := NewSegments(config, index)
+	segments, err := NewSegments(cfg, index)
 
 	assert.NoError(t, err)
 
@@ -36,7 +37,7 @@ func TestAppend(t *testing.T) {
 }
 
 func TestAppendMultipleEntry(t *testing.T) {
-	config := config.NewConfig(createTempDir("SegmentTestAppendMultipleEntry"), 1000)
+	config := config.NewConfig(createTempDir("SegmentTestAppendMultipleEntry"), "tmp", 1000, time.Second)
 	defer removeTempDir("SegmentTestAppendMultipleEntry")
 	index := NewIndex()
 	segments, err := NewSegments(config, index)
@@ -58,7 +59,7 @@ func TestAppendMultipleEntry(t *testing.T) {
 }
 
 func TestSegmentRollOver(t *testing.T) {
-	config := config.NewConfig(createTempDir("TestSegmentRollOver1"), 20)
+	config := config.NewConfig(createTempDir("TestSegmentRollOver1"), "tmp", 20, time.Second)
 	defer removeTempDir("TestSegmentRollOver1")
 	index := NewIndex()
 	segments, err := NewSegments(config, index)
@@ -73,7 +74,7 @@ func TestSegmentRollOver(t *testing.T) {
 }
 
 func TestReadFromARolledOverSegment(t *testing.T) {
-	config := config.NewConfig(createTempDir("TestReadFromARolledOverSegment"), 10)
+	config := config.NewConfig(createTempDir("TestReadFromARolledOverSegment"), "tmp", 10, time.Second)
 	defer removeTempDir("TestReadFromARolledOverSegment")
 	index := NewIndex()
 	segments, err := NewSegments(config, index)

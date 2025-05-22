@@ -4,6 +4,7 @@ import (
 	"ashishkujoy/queue/internal/config"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -13,7 +14,7 @@ func TestEnqueue(t *testing.T) {
 	defer os.RemoveAll(segmentPath)
 	metaDataPath := createTempDir("testEnqueue/metadata")
 	defer os.RemoveAll(metaDataPath)
-	config := config.NewConfigWithMetadataPath(segmentPath, metaDataPath, 1024)
+	config := config.NewConfig(segmentPath, metaDataPath, 1024, time.Second)
 
 	queueService, err := NewQueueService(config)
 	assert.NoError(t, err)

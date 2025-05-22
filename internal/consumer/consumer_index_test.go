@@ -4,6 +4,7 @@ import (
 	"ashishkujoy/queue/internal/config"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -22,7 +23,7 @@ func TestReadAndWriteIndex(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(metadataDir)
 
-	config := config.NewConfigWithMetadataPath("/tmp", metadataDir, 1234)
+	config := config.NewConfig("/tmp", metadataDir, 1234, time.Second*100)
 	index, err := NewConsumerIndex(config)
 	assert.NoError(t, err)
 
@@ -41,17 +42,17 @@ func TestReadFromARestoredIndex(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(metadataDir)
 
-	config := config.NewConfigWithMetadataPath("/tmp", metadataDir, 1234)
-	index, err := NewConsumerIndex(config)
+	cfg := config.NewConfig("/tmp", metadataDir, 1234, time.Second*100)
+	index, err := NewConsumerIndex(cfg)
 	assert.NoError(t, err)
 
 	index.WriteIndex(11, 10)
 	index.WriteIndex(12, 20)
 	index.WriteIndex(13, 30)
 
-	index.Close()
+	assert.NoError(t, index.Close())
 
-	restoredIndex, err := RestoreConsumerIndex(config)
+	restoredIndex, err := RestoreConsumerIndex(cfg)
 	assert.NoError(t, err)
 
 	assert.Equal(t, 10, restoredIndex.ReadIndex(11))
@@ -65,7 +66,7 @@ func TestRestoreIndexUsesTheLatestSnapshot(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(metadataDir)
 
-	config := config.NewConfigWithMetadataPath("/tmp", metadataDir, 1234)
+	config := config.NewConfig("/tmp", metadataDir, 1234, time.Second*100)
 
 	index1, err := NewConsumerIndex(config)
 	assert.NoError(t, err)

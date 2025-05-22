@@ -15,7 +15,7 @@ func NewQueueService(config *config.Config) (*QueueService, error) {
 	if err != nil {
 		return nil, err
 	}
-	consumerIndex, err := consumer.NewConsumerIndex(config)
+	consumerIndex, err := consumer.RestoreConsumerIndex(config)
 	if err != nil {
 		return nil, err
 	}

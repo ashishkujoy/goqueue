@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"ashishkujoy/queue/internal"
 	"ashishkujoy/queue/internal/config"
 	"encoding/binary"
 	"fmt"
@@ -30,12 +31,30 @@ func NewConsumerIndex(config *config.Config) (*ConsumerIndex, error) {
 		return nil, err
 	}
 
-	return &ConsumerIndex{
+	consumerIndex := &ConsumerIndex{
 		writer:  writer,
 		mu:      &sync.RWMutex{},
 		indexes: make(map[int]int),
 		config:  config,
-	}, nil
+	}
+	return consumerIndex, nil
+}
+
+func (ci *ConsumerIndex) schedulePersist() {
+	ticker := time.NewTicker(ci.config.ConsumerIndexSyncInterval())
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				ci.mu.Lock()
+				err := ci.Persist()
+				ci.mu.Unlock()
+				if err != nil {
+					fmt.Printf("Error persisting consumer index: %v\n", err)
+				}
+			}
+		}
+	}()
 }
 
 func extractTimestamp(filename string) int64 {
@@ -46,12 +65,20 @@ func extractTimestamp(filename string) int64 {
 }
 
 func getLastIndexFile(config *config.Config) (*os.File, error) {
-	enteries, err := os.ReadDir(config.MetadataPath)
+	files, err := getSortedIndexFiles(config)
+	if err != nil {
+		return nil, err
+	}
+	return files[0], nil
+}
+
+func getSortedIndexFiles(config *config.Config) ([]*os.File, error) {
+	entries, err := os.ReadDir(config.MetadataPath)
 	if err != nil {
 		return nil, err
 	}
 	var metadataTimestamp []int64
-	for _, entry := range enteries {
+	for _, entry := range entries {
 		if strings.Contains(entry.Name(), "consumer_index_") {
 			metadataTimestamp = append(metadataTimestamp, extractTimestamp(entry.Name()))
 		}
@@ -62,10 +89,14 @@ func getLastIndexFile(config *config.Config) (*os.File, error) {
 	sort.Slice(metadataTimestamp, func(i, j int) bool {
 		return metadataTimestamp[i] > metadataTimestamp[j]
 	})
-	lastTimestamp := metadataTimestamp[0]
-	lastIndexFile := fmt.Sprintf("%s/consumer_index_%d", config.MetadataPath, lastTimestamp)
-
-	return os.OpenFile(lastIndexFile, os.O_RDWR, 0666)
+	files := internal.Map(metadataTimestamp, func(i int64) *os.File {
+		file, err := os.OpenFile(fmt.Sprintf("%s/consumer_index_%d", config.MetadataPath, i), os.O_RDWR, 0666)
+		if err != nil {
+			return nil
+		}
+		return file
+	})
+	return files, nil
 }
 
 func restoreIndexesFromFile(file *os.File) (map[int]int, error) {
@@ -78,11 +109,17 @@ func restoreIndexesFromFile(file *os.File) (map[int]int, error) {
 	indexes := make(map[int]int, stat.Size()/8)
 	for i := int64(0); i < indexSize; i++ {
 		buf := make([]byte, 4)
-		file.ReadAt(buf, int64(offset))
+		_, err := file.ReadAt(buf, int64(offset))
+		if err != nil {
+			return nil, err
+		}
 		offset += 4
 		consumerId := binary.BigEndian.Uint32(buf)
 		buf = make([]byte, 4)
-		file.ReadAt(buf, int64(offset))
+		_, err = file.ReadAt(buf, int64(offset))
+		if err != nil {
+			return nil, err
+		}
 		offset += 4
 		consumerIndex := binary.BigEndian.Uint32(buf)
 		indexes[int(consumerId)] = int(consumerIndex)
@@ -192,12 +229,27 @@ func (ci *ConsumerIndex) CreateSnapshot() []byte {
 }
 
 func (ci *ConsumerIndex) Close() error {
+	return ci.Persist()
+}
+
+func (ci *ConsumerIndex) Persist() error {
 	snapshot := ci.CreateSnapshot()
 	indexFile, err := createIndexFile(ci.config)
 	if err != nil {
 		return err
 	}
 	_, err = indexFile.Write(snapshot)
-	indexFile.Sync()
+	err = indexFile.Sync()
+	if err != nil {
+		return err
+	}
+	ci.writer = indexFile
+	files, err := getSortedIndexFiles(ci.config)
+	for _, file := range files[1:] {
+		_ = file.Close()
+	}
+	if err != nil {
+		return err
+	}
 	return err
 }

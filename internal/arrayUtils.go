@@ -20,3 +20,11 @@ func Filter[T any](elements []T, f func(T) bool) []T {
 
 	return filtered
 }
+
+func Map[I any, O any](elements []I, f func(I) O) []O {
+	var mapped []O
+	for _, element := range elements {
+		mapped = append(mapped, f(element))
+	}
+	return mapped
+}

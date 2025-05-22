@@ -4,6 +4,7 @@ import (
 	"ashishkujoy/queue/internal/config"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -20,9 +21,13 @@ func removeTempDir(suffix string) {
 }
 
 func TestEnqueueSingleElement(t *testing.T) {
-	config := config.NewConfig(createTempDir("TestEnqueueSingleElement"), 1000)
+	cfg := config.NewConfig(
+		createTempDir("TestEnqueueSingleElement"),
+		"/tmp/metadata",
+		1000,
+		time.Second)
 	defer removeTempDir("TestEnqueueSingleElement")
-	queue, err := NewQueue(config)
+	queue, err := NewQueue(cfg)
 	assert.NoError(t, err)
 	defer queue.Close()
 
