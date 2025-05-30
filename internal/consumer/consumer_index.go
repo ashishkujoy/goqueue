@@ -41,17 +41,18 @@ func NewConsumerIndex(config *config.Config) (*ConsumerIndex, error) {
 }
 
 func (ci *ConsumerIndex) schedulePersist() {
+	fmt.Printf("Starting consumer index persistence with interval: %s\n", ci.config.ConsumerIndexSyncInterval())
 	ticker := time.NewTicker(ci.config.ConsumerIndexSyncInterval())
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				ci.mu.Lock()
+				fmt.Printf("Starting consumer index persistence\n")
 				err := ci.Persist()
-				ci.mu.Unlock()
 				if err != nil {
 					fmt.Printf("Error persisting consumer index: %v\n", err)
 				}
+				fmt.Printf("Done with consumer index persistence\n")
 			}
 		}
 	}()
@@ -141,12 +142,14 @@ func RestoreConsumerIndex(config *config.Config) (*ConsumerIndex, error) {
 		return nil, err
 	}
 
-	return &ConsumerIndex{
+	c := &ConsumerIndex{
 		writer:  lastIndexFile,
 		indexes: indexes,
 		mu:      &sync.RWMutex{},
 		config:  config,
-	}, nil
+	}
+	go c.schedulePersist()
+	return c, nil
 }
 
 // createIndexFile creates a new index file for the consumer.

@@ -23,8 +23,8 @@ func TestReadAndWriteIndex(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(metadataDir)
 
-	config := config.NewConfig("/tmp", metadataDir, 1234, time.Second*100)
-	index, err := NewConsumerIndex(config)
+	cfg := config.NewConfig("/tmp", metadataDir, 1234, time.Second*100)
+	index, err := NewConsumerIndex(cfg)
 	assert.NoError(t, err)
 
 	index.WriteIndex(1, 10)
@@ -66,26 +66,26 @@ func TestRestoreIndexUsesTheLatestSnapshot(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(metadataDir)
 
-	config := config.NewConfig("/tmp", metadataDir, 1234, time.Second*100)
+	cfg := config.NewConfig("/tmp", metadataDir, 1234, time.Second*100)
 
-	index1, err := NewConsumerIndex(config)
+	index1, err := NewConsumerIndex(cfg)
 	assert.NoError(t, err)
 
 	index1.WriteIndex(11, 10)
 	index1.WriteIndex(12, 20)
 	index1.WriteIndex(13, 30)
 
-	index1.Close()
+	assert.NoError(t, index1.Close())
 
-	index2, err := RestoreConsumerIndex(config)
+	index2, err := RestoreConsumerIndex(cfg)
 	assert.NoError(t, err)
 
 	index2.WriteIndex(12, 200)
 	index2.WriteIndex(14, 1300)
 
-	index2.Close()
+	assert.NoError(t, index2.Close())
 
-	restoredIndex, err := RestoreConsumerIndex(config)
+	restoredIndex, err := RestoreConsumerIndex(cfg)
 	assert.NoError(t, err)
 
 	assert.Equal(t, 10, restoredIndex.ReadIndex(11))

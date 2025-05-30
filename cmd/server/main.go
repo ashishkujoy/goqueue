@@ -8,7 +8,12 @@ import (
 )
 
 func main() {
-	conf := config.NewConfig("data/segments", "data/metadata", 1024*1024, time.Second*100)
+	conf := config.NewConfig(
+		"data/segments",
+		"data/metadata",
+		1024*1024,
+		time.Second*2,
+	)
 	server, err := netinternal.NewQueueServer(conf, ":50051")
 	if err != nil {
 		log.Fatalf("Failed to create server: %v", err)
