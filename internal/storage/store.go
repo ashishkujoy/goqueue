@@ -40,14 +40,19 @@ func NewStore(filePath string) (*Store, error) {
 
 // RestoreStore restores a store from a file at the given filePath.
 // It opens the file for reading only
-// TODO: Add error handling of writing to a restored store.(closed segment)
 func RestoreStore(filePath string) (*Store, error) {
+	writer, err := os.OpenFile(filePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, err
+	}
+
 	reader, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
 	if err != nil {
 		return nil, err
 	}
 	return &Store{
 		reader: reader,
+		writer: writer,
 	}, nil
 }
 
@@ -107,4 +112,18 @@ func (s *Store) Close() error {
 
 func (s *Store) Size() int {
 	return s.offset
+}
+
+func (s *Store) readAllEntries() ([][]byte, error) {
+	var entries [][]byte
+	offset := 0
+	for {
+		entry, err := s.Read(offset)
+		if err != nil {
+			break
+		}
+		entries = append(entries, entry)
+		offset += len(entry) + 4
+	}
+	return entries, nil
 }

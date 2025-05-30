@@ -80,7 +80,6 @@ func TestRestoreStore(t *testing.T) {
 	assert.NoError(t, err)
 
 	restoreStore, err := RestoreStore(filePath)
-	assert.Nil(t, restoreStore.writer)
 	assert.NoError(t, err)
 
 	data1, err := restoreStore.Read(offset1)

@@ -21,6 +21,10 @@ func (c *Config) ConsumerIndexSyncInterval() time.Duration {
 	return c.consumerIndexSyncInterval
 }
 
+func (c *Config) IndexFilePath() string {
+	return c.MetadataPath + "/index"
+}
+
 func NewConfig(
 	segmentsRoot string,
 	metadataPath string,

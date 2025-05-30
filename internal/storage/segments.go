@@ -122,8 +122,7 @@ func (s *Segments) Append(data []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	messageId := s.index.Append(NewMessageEntry(s.active.id, offset))
-	return messageId, nil
+	return s.index.Append(NewMessageEntry(s.active.id, offset))
 }
 
 // Read reads data from the segment with the given message ID.

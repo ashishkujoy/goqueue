@@ -21,9 +21,16 @@ func removeTempDir(suffix string) {
 }
 
 func TestAppend(t *testing.T) {
-	cfg := config.NewConfig(createTempDir("SegmentTestAppend"), "tmp", 1000, time.Second)
+	cfg := config.NewConfig(
+		createTempDir("SegmentTestAppend"),
+		createTempDir("metadata"),
+		1000,
+		time.Second,
+	)
 	defer removeTempDir("SegmentTestAppend")
-	index := NewIndex()
+	defer removeTempDir("metadata")
+	index, err := NewIndex(cfg)
+	assert.NoError(t, err)
 	segments, err := NewSegments(cfg, index)
 
 	assert.NoError(t, err)
@@ -37,10 +44,16 @@ func TestAppend(t *testing.T) {
 }
 
 func TestAppendMultipleEntry(t *testing.T) {
-	config := config.NewConfig(createTempDir("SegmentTestAppendMultipleEntry"), "tmp", 1000, time.Second)
+	cfg := config.NewConfig(
+		createTempDir("SegmentTestAppendMultipleEntry"),
+		createTempDir("metadata"),
+		1000,
+		time.Second,
+	)
 	defer removeTempDir("SegmentTestAppendMultipleEntry")
-	index := NewIndex()
-	segments, err := NewSegments(config, index)
+	defer removeTempDir("metadata")
+	index, _ := NewIndex(cfg)
+	segments, err := NewSegments(cfg, index)
 	assert.NoError(t, err)
 
 	messageId1, err := segments.Append([]byte("Hello Segments"))
@@ -59,10 +72,15 @@ func TestAppendMultipleEntry(t *testing.T) {
 }
 
 func TestSegmentRollOver(t *testing.T) {
-	config := config.NewConfig(createTempDir("TestSegmentRollOver1"), "tmp", 20, time.Second)
+	cfg := config.NewConfig(
+		createTempDir("TestSegmentRollOver1"),
+		createTempDir("metadata"),
+		20,
+		time.Second,
+	)
 	defer removeTempDir("TestSegmentRollOver1")
-	index := NewIndex()
-	segments, err := NewSegments(config, index)
+	index, _ := NewIndex(cfg)
+	segments, err := NewSegments(cfg, index)
 	assert.NoError(t, err)
 
 	segments.Append([]byte("Hello Segments"))
@@ -74,9 +92,14 @@ func TestSegmentRollOver(t *testing.T) {
 }
 
 func TestReadFromARolledOverSegment(t *testing.T) {
-	cfg := config.NewConfig(createTempDir("TestReadFromARolledOverSegment"), "tmp", 10, time.Second)
+	cfg := config.NewConfig(
+		createTempDir("TestReadFromARolledOverSegment"),
+		createTempDir("metadata"),
+		10,
+		time.Second,
+	)
 	defer removeTempDir("TestReadFromARolledOverSegment")
-	index := NewIndex()
+	index, _ := NewIndex(cfg)
 	segments, err := NewSegments(cfg, index)
 	assert.NoError(t, err)
 
@@ -92,9 +115,14 @@ func TestReadFromARolledOverSegment(t *testing.T) {
 }
 
 func TestRestoreASegment(t *testing.T) {
-	cfg := config.NewConfig(createTempDir("TestRestoreASegment"), "tmp", 10, time.Second)
+	cfg := config.NewConfig(
+		createTempDir("TestRestoreASegment"),
+		createTempDir("metadata"),
+		10,
+		time.Second,
+	)
 	defer removeTempDir("TestRestoreASegment")
-	index := NewIndex()
+	index, _ := NewIndex(cfg)
 	segments, err := NewSegments(cfg, index)
 	assert.NoError(t, err)
 

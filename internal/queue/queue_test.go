@@ -23,10 +23,11 @@ func removeTempDir(suffix string) {
 func TestEnqueueSingleElement(t *testing.T) {
 	cfg := config.NewConfig(
 		createTempDir("TestEnqueueSingleElement"),
-		"/tmp/metadata",
+		createTempDir("metadata"),
 		1000,
 		time.Second)
 	defer removeTempDir("TestEnqueueSingleElement")
+	defer removeTempDir("metadata")
 	queue, err := NewQueue(cfg)
 	assert.NoError(t, err)
 	defer queue.Close()

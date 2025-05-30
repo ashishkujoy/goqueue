@@ -9,16 +9,24 @@ type Queue struct {
 	segments *storage.Segments
 }
 
-func NewQueue(config *config.Config) (*Queue, error) {
-	segments, err := storage.NewSegments(config, storage.NewIndex())
+func NewQueue(cfg *config.Config) (*Queue, error) {
+	index, err := storage.NewIndex(cfg)
+	if err != nil {
+		return nil, err
+	}
+	segments, err := storage.NewSegments(cfg, index)
 	if err != nil {
 		return nil, err
 	}
 	return &Queue{segments: segments}, nil
 }
 
-func RestoreQueue(config *config.Config) (*Queue, error) {
-	segments, err := storage.RestoreSegments(config, storage.NewIndex())
+func RestoreQueue(cfg *config.Config) (*Queue, error) {
+	index, err := storage.RestoreIndex(cfg)
+	if err != nil {
+		return nil, err
+	}
+	segments, err := storage.RestoreSegments(cfg, index)
 	if err != nil {
 		return nil, err
 	}

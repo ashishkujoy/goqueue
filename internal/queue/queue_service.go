@@ -11,7 +11,7 @@ type QueueService struct {
 }
 
 func NewQueueService(config *config.Config) (*QueueService, error) {
-	queue, err := NewQueue(config)
+	queue, err := RestoreQueue(config)
 	if err != nil {
 		return nil, err
 	}
