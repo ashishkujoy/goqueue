@@ -29,6 +29,17 @@ func NewSegment(id int, config *config.Config) (*Segment, error) {
 	return &Segment{store: store, id: id, mu: &sync.RWMutex{}}, nil
 }
 
+// RestoreSegment restores a segment from the given ID and configuration.
+func RestoreSegment(id int, config *config.Config) (*Segment, error) {
+	filePath := fmt.Sprintf("%s/segment-%d", config.SegmentsRoot(), id)
+	store, err := RestoreStore(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Segment{store: store, id: id, mu: &sync.RWMutex{}}, nil
+}
+
 // Append appends data to the segment.
 // It locks the segment for writing to ensure thread safety.
 // It returns the offset of the appended data or an error if the operation fails.

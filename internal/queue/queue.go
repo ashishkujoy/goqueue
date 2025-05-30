@@ -17,6 +17,14 @@ func NewQueue(config *config.Config) (*Queue, error) {
 	return &Queue{segments: segments}, nil
 }
 
+func RestoreQueue(config *config.Config) (*Queue, error) {
+	segments, err := storage.RestoreSegments(config, storage.NewIndex())
+	if err != nil {
+		return nil, err
+	}
+	return &Queue{segments: segments}, nil
+}
+
 func (q *Queue) Enqueue(data []byte) (int, error) {
 	return q.segments.Append(data)
 }

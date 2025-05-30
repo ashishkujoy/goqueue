@@ -3,6 +3,10 @@ package storage
 import (
 	"ashishkujoy/queue/internal/config"
 	"fmt"
+	"os"
+	"slices"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -33,6 +37,77 @@ func NewSegments(config *config.Config, index *Index) (*Segments, error) {
 		closedSegments: make([]*Segment, 0),
 		mu:             &sync.Mutex{},
 	}, nil
+}
+
+// RestoreSegments restores segments from the given configuration and index.
+func RestoreSegments(c *config.Config, index *Index) (*Segments, error) {
+	segmentIds, err := getSegmentIds(c.SegmentsRoot())
+	if err != nil {
+		return nil, err
+	}
+
+	closedSegments, err2 := restoreSegmentsById(c, segmentIds)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	activeSegmentId, activeSegment, err := createActiveSegment(c, segmentIds, err)
+	if err != nil {
+		return nil, err
+	}
+	return &Segments{
+		config:         c,
+		active:         activeSegment,
+		id:             activeSegmentId,
+		index:          index,
+		closedSegments: closedSegments,
+		mu:             &sync.Mutex{},
+	}, nil
+}
+
+func createActiveSegment(c *config.Config, segmentIds []int, err error) (int, *Segment, error) {
+	activeSegmentId := 0
+	if len(segmentIds) != 0 {
+		activeSegmentId = segmentIds[len(segmentIds)-1]
+	}
+	activeSegment, err := NewSegment(activeSegmentId+1, c)
+	if err != nil {
+		return 0, nil, err
+	}
+	return activeSegmentId + 1, activeSegment, nil
+}
+
+func restoreSegmentsById(c *config.Config, segmentIds []int) ([]*Segment, error) {
+	var closedSegments []*Segment
+	for _, segmentId := range segmentIds {
+		segment, err := RestoreSegment(segmentId, c)
+		if err != nil {
+			return nil, err
+		}
+		closedSegments = append(closedSegments, segment)
+	}
+	return closedSegments, nil
+}
+
+func getSegmentIds(segmentsRoot string) ([]int, error) {
+	entries, err := os.ReadDir(segmentsRoot)
+	if err != nil {
+		return nil, err
+	}
+	var segmentIds []int
+	for _, entry := range entries {
+		if !strings.HasPrefix(entry.Name(), "segment-") {
+			continue
+		}
+		segmentIdStr := strings.TrimPrefix(entry.Name(), "segment-")
+		id, err := strconv.Atoi(segmentIdStr)
+		if err != nil {
+			return nil, err
+		}
+		segmentIds = append(segmentIds, id)
+	}
+	slices.Sort(segmentIds)
+	return segmentIds, nil
 }
 
 // Append appends data to the active segment.

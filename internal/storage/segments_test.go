@@ -74,10 +74,10 @@ func TestSegmentRollOver(t *testing.T) {
 }
 
 func TestReadFromARolledOverSegment(t *testing.T) {
-	config := config.NewConfig(createTempDir("TestReadFromARolledOverSegment"), "tmp", 10, time.Second)
+	cfg := config.NewConfig(createTempDir("TestReadFromARolledOverSegment"), "tmp", 10, time.Second)
 	defer removeTempDir("TestReadFromARolledOverSegment")
 	index := NewIndex()
-	segments, err := NewSegments(config, index)
+	segments, err := NewSegments(cfg, index)
 	assert.NoError(t, err)
 
 	messageId1, _ := segments.Append([]byte("Hello Segments"))
@@ -89,4 +89,27 @@ func TestReadFromARolledOverSegment(t *testing.T) {
 	data1, _ := segments.Read(messageId1)
 	assert.Equal(t, []byte("Another Hello Segments"), data2)
 	assert.Equal(t, []byte("Hello Segments"), data1)
+}
+
+func TestRestoreASegment(t *testing.T) {
+	cfg := config.NewConfig(createTempDir("TestRestoreASegment"), "tmp", 10, time.Second)
+	defer removeTempDir("TestRestoreASegment")
+	index := NewIndex()
+	segments, err := NewSegments(cfg, index)
+	assert.NoError(t, err)
+
+	messageId1, _ := segments.Append([]byte("Hello Segments"))
+	messageId2, _ := segments.Append([]byte("Another Hello Segments"))
+	messageId3, _ := segments.Append([]byte("Yet Another Hello Segments"))
+	_ = segments.Close()
+	restoreSegments, err := RestoreSegments(cfg, index)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(restoreSegments.closedSegments))
+
+	data2, _ := restoreSegments.Read(messageId2)
+	data1, _ := restoreSegments.Read(messageId1)
+	data3, _ := restoreSegments.Read(messageId3)
+	assert.Equal(t, []byte("Another Hello Segments"), data2)
+	assert.Equal(t, []byte("Hello Segments"), data1)
+	assert.Equal(t, []byte("Yet Another Hello Segments"), data3)
 }
