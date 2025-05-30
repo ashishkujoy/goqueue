@@ -19,7 +19,7 @@ func (m *MessageEntry) Encode() []byte {
 	offset += 8
 	binary.BigEndian.PutUint64(data[offset:offset+8], uint64(m.offset))
 	offset += 8
-	binary.BigEndian.PutUint64(data[offset:offset+8], uint64(m.offset))
+	binary.BigEndian.PutUint64(data[offset:offset+8], uint64(m.elementId))
 	return data
 }
 
@@ -79,23 +79,24 @@ func restoreEntries(store *Store) (map[int]MessageEntry, int, error) {
 	if err != nil {
 		return nil, 0, err
 	}
-	var elementId = 0
+	var elementId = -1
 	for _, entry := range entriesBytes {
 		messageEntry := MessageEntry{}
 		messageEntry.Decode(entry)
 		entries[messageEntry.elementId] = messageEntry
 		elementId = messageEntry.elementId
 	}
-	return entries, elementId, nil
+	return entries, elementId + 1, nil
 }
 
 func (i *Index) Append(messageEntry MessageEntry) (int, error) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
 	currentElementId := i.elementId
 	messageEntry.elementId = currentElementId
 	i.entries[currentElementId] = messageEntry
 	i.elementId++
-	i.mu.Lock()
-	defer i.mu.Unlock()
 	_, err := i.store.Append(messageEntry.Encode())
 	if err != nil {
 		return 0, err
@@ -106,4 +107,8 @@ func (i *Index) Append(messageEntry MessageEntry) (int, error) {
 func (i *Index) GetOffset(elementId int) (MessageEntry, bool) {
 	v, ok := i.entries[elementId]
 	return v, ok
+}
+
+func (i *Index) Close() error {
+	return i.store.Close()
 }
