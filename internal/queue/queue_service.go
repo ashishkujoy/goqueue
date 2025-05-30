@@ -45,3 +45,11 @@ func (qs *QueueService) RevertDequeue(consumerId int) {
 	index := qs.consumerIndex.ReadIndex(consumerId)
 	qs.consumerIndex.WriteIndex(consumerId, index-1)
 }
+
+func (qs *QueueService) Close() error {
+	err := qs.queue.Close()
+	if err != nil {
+		return err
+	}
+	return qs.consumerIndex.Close()
+}
