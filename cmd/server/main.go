@@ -11,7 +11,7 @@ func main() {
 	conf := config.NewConfig(
 		"data/segments",
 		"data/metadata",
-		1024*1024,
+		1024*1024*10,
 		time.Second*2,
 	)
 	server, err := netinternal.NewQueueServer(conf, ":50051")

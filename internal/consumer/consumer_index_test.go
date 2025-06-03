@@ -37,12 +37,12 @@ func TestReadAndWriteIndex(t *testing.T) {
 	assert.Equal(t, -1, index.ReadIndex(4))
 }
 
-func TestReadFromARestoredIndex(t *testing.T) {
-	metadataDir, err := CreateMetadataDir("2")
+func TestReadFromARestoredConsumerIndex(t *testing.T) {
+	metadataDir, err := CreateMetadataDir("TestReadFromARestoredConsumerIndex")
 	assert.NoError(t, err)
 	defer os.RemoveAll(metadataDir)
 
-	cfg := config.NewConfig("/tmp", metadataDir, 1234, time.Second*100)
+	cfg := config.NewConfig("/tmp", metadataDir, 1234, time.Second*1000)
 	index, err := NewConsumerIndex(cfg)
 	assert.NoError(t, err)
 

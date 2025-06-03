@@ -5,6 +5,7 @@ import (
 	"ashishkujoy/queue/internal/config"
 	"encoding/binary"
 	"fmt"
+	"io/fs"
 	"os"
 	"sort"
 	"strconv"
@@ -235,6 +236,28 @@ func (ci *ConsumerIndex) Close() error {
 	return ci.Persist()
 }
 
+func removeOldIndexFiles(config *config.Config, currentIndexFile string) error {
+	entries, err := os.ReadDir(config.MetadataPath)
+	if err != nil {
+		return err
+	}
+
+	consumerIndexes := internal.Filter(entries, func(entry fs.DirEntry) bool {
+		return strings.Contains(entry.Name(), "consumer_index_") && !strings.Contains(currentIndexFile, entry.Name())
+	})
+
+	for _, entry := range consumerIndexes {
+		dir, _ := os.Getwd()
+
+		fmt.Printf("Current working dir: %s\n", dir)
+		err := os.Remove(fmt.Sprintf("%s/%s", config.MetadataPath, entry.Name()))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (ci *ConsumerIndex) Persist() error {
 	snapshot := ci.CreateSnapshot()
 	indexFile, err := createIndexFile(ci.config)
@@ -247,10 +270,7 @@ func (ci *ConsumerIndex) Persist() error {
 		return err
 	}
 	ci.writer = indexFile
-	files, err := getSortedIndexFiles(ci.config)
-	for _, file := range files[1:] {
-		_ = file.Close()
-	}
+	err = removeOldIndexFiles(ci.config, indexFile.Name())
 	if err != nil {
 		return err
 	}
